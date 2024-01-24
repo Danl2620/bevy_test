@@ -1,0 +1,9 @@
+assets/maps/oryx_creatures.png filter=lfs diff=lfs merge=lfs -text
+assets/maps/oryx_fx.png filter=lfs diff=lfs merge=lfs -text
+assets/maps/oryx_world2.png filter=lfs diff=lfs merge=lfs -text
+assets/sprites/oryx_16bit_fantasy_creatures_trans.png filter=lfs diff=lfs merge=lfs -text
+assets/gabe-idle-run.png filter=lfs diff=lfs merge=lfs -text
+assets/maps/oryx_items.png filter=lfs diff=lfs merge=lfs -text
+assets/maps/oryx_tiles.png filter=lfs diff=lfs merge=lfs -text
+assets/maps/oryx_world.png filter=lfs diff=lfs merge=lfs -text
+assets/sprites/oryx_16bit_fantasy_creatures.png filter=lfs diff=lfs merge=lfs -text
