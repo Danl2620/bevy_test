@@ -2,8 +2,10 @@
 //! into a texture atlas, and changing the displayed image periodically.
 
 use bevy::prelude::*;
+use bevy_ecs_tilemap::prelude::*;
 use bevy_common_assets::ron::RonAssetPlugin;
 
+mod helpers;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 enum AppState {
@@ -26,11 +28,10 @@ struct SpriteInfoHandle(Handle<SpriteInfo>);
 
 fn main() {
     App::new()
-        .add_plugins(
-            (
-                DefaultPlugins.set(ImagePlugin::default_nearest()),
-                RonAssetPlugin::<SpriteInfo>::new(&["sprite-info.ron"])
-            )) // prevents blurry sprites
+        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest())) // prevents blurry sprites
+        .add_plugins(RonAssetPlugin::<SpriteInfo>::new(&["sprite-info.ron"]))
+        .add_plugins(TilemapPlugin)
+        .add_plugins(helpers::tiled::TiledMapPlugin)
         .add_state::<AppState>()
         .add_systems(Startup, setup)
         .add_systems(Update, spawn_sprites.run_if(in_state(AppState::Loading)))
@@ -63,12 +64,6 @@ fn animate_sprite(
                     frame.0 = 0
                 }
                 sprite.index = info.frames[frame.0 as usize]
-                //if frame ==
-                // sprite.index = if sprite.index == indices.last {
-                //     indices.first
-                // } else {
-                //     sprite.index + 1
-                // };
             }
         }
     }
@@ -80,6 +75,13 @@ fn setup(
 ) {
     let sprite_info_handle = SpriteInfoHandle(asset_server.load("main.sprite-info.ron"));
     commands.insert_resource(sprite_info_handle);
+
+    let map_handle: Handle<helpers::tiled::TiledMap> = asset_server.load("maps/TMX/oryx_16-bit_fantasy_test.tmx");
+
+    commands.spawn(helpers::tiled::TiledMapBundle {
+        tiled_map: map_handle,
+        ..Default::default()
+    });
 }
 
 
