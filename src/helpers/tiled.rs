@@ -166,9 +166,10 @@ impl AssetLoader for TiledLoader {
                             .path()
                             .parent()
                             .expect("The asset load context was empty.");
-                        let tile_path = tmx_dir.join(&img.source);
-                        let asset_path = AssetPath::from(tile_path);
-                        let texture: Handle<Image> = load_context.load(asset_path.clone());
+                        //let tile_path = tmx_dir.join(&img.source);
+                        //let asset_path = AssetPath::from(tile_path);
+                        //let texture: Handle<Image> = load_context.load(asset_path.clone());
+                        let texture: Handle<Image> = load_context.load(img.source.clone());
 
                         TilemapTexture::Single(texture.clone())
                     }

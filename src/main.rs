@@ -4,6 +4,7 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
 use bevy_common_assets::ron::RonAssetPlugin;
+use bevy_pancam::{PanCam, PanCamPlugin};
 
 mod helpers;
 
@@ -30,12 +31,13 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest())) // prevents blurry sprites
         .add_plugins(RonAssetPlugin::<SpriteInfo>::new(&["sprite-info.ron"]))
+        .add_plugins(PanCamPlugin::default())
         .add_plugins(TilemapPlugin)
         .add_plugins(helpers::tiled::TiledMapPlugin)
         .add_state::<AppState>()
-        .add_systems(Startup, setup)
+        .add_systems(Startup, setup.run_if(in_state(AppState::Loading)))
         .add_systems(Update, spawn_sprites.run_if(in_state(AppState::Loading)))
-        .add_systems(Update, animate_sprite)
+        .add_systems(Update, animate_sprite.run_if(in_state(AppState::Level)))
         .run();
 }
 
@@ -82,6 +84,10 @@ fn setup(
         tiled_map: map_handle,
         ..Default::default()
     });
+
+    commands.spawn((
+        Camera2dBundle::default(),
+        PanCam::default()));
 }
 
 
@@ -102,7 +108,6 @@ fn spawn_sprites(
         // Use only the subset of sprites in the sheet that make up the run animation
         //let animation_indices = AnimationIndices { first: 23, last: 28 };
         let animation_frame = AnimationFrame(0);
-        commands.spawn(Camera2dBundle::default());
         commands.spawn((
             SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,

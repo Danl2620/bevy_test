@@ -9,6 +9,7 @@ edition = "2021"
 bevy = "0.12"
 bevy_common_assets = { version = "0.9.0", features = ["ron"] }
 bevy_ecs_tilemap = { git = "https://github.com/StarArawn/bevy_ecs_tilemap", branch = "main" }
+bevy_pancam = "0.10.0"
 serde = "1.0.195"
 thiserror = { version = "1.0" }
 tiled = { version = "0.11.0", default-features = false }
