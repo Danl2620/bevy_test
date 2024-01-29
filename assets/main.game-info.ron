@@ -1,0 +1,9 @@
+(
+    sprite_info: (
+        sheet: "sprites/oryx_16bit_fantasy_creatures_trans.png",
+        columns: 20,
+        rows: 27,
+        frames: [22, 42]
+        ),
+    map_name: "maps/TMX/oryx_16-bit_fantasy_test.tmx",
+)

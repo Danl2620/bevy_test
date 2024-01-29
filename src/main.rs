@@ -15,7 +15,7 @@ enum AppState {
     Level,
 }
 
-#[derive(serde::Deserialize, bevy::asset::Asset, bevy::reflect::TypePath)]
+#[derive(serde::Deserialize, bevy::reflect::TypePath)]
 struct SpriteInfo {
     sheet: String,
     columns: usize,
@@ -23,14 +23,20 @@ struct SpriteInfo {
     frames: Vec<usize>,
 }
 
+#[derive(serde::Deserialize, bevy::asset::Asset, bevy::reflect::TypePath)]
+struct GameInfo {
+    sprite_info: SpriteInfo,
+    map_name: String,
+}
+
 #[derive(Resource)]
-struct SpriteInfoHandle(Handle<SpriteInfo>);
+struct GameInfoHandle(Handle<GameInfo>);
 
 fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins.set(ImagePlugin::default_nearest()), // prevents blurry sprites
-            RonAssetPlugin::<SpriteInfo>::new(&["sprite-info.ron"]),
+            RonAssetPlugin::<GameInfo>::new(&["game-info.ron"]),
             PanCamPlugin::default(),
             TilemapPlugin,
             helpers::tiled::TiledMapPlugin,
@@ -50,41 +56,50 @@ struct AnimationTimer(Timer);
 
 fn animate_sprite(
     time: Res<Time>,
-    sprite_info: Res<SpriteInfoHandle>,
-    sprite_infos: Res<Assets<SpriteInfo>>,
+    game_info: Res<GameInfoHandle>,
+    game_infos: Res<Assets<GameInfo>>,
     mut query: Query<(
         &mut AnimationFrame,
         &mut AnimationTimer,
         &mut TextureAtlasSprite,
     )>,
 ) {
-    if let Some(info) = sprite_infos.get(sprite_info.0.id()) {
+    if let Some(info) = game_infos.get(game_info.0.id()) {
         for (mut frame, mut timer, mut sprite) in &mut query {
             timer.tick(time.delta());
             if timer.just_finished() {
                 frame.0 += 1;
-                if frame.0 == info.frames.len() as i32 {
+                if frame.0 == info.sprite_info.frames.len() as i32 {
                     frame.0 = 0
                 }
-                sprite.index = info.frames[frame.0 as usize]
+                sprite.index = info.sprite_info.frames[frame.0 as usize]
             }
         }
     }
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let sprite_info_handle = SpriteInfoHandle(asset_server.load("main.sprite-info.ron"));
-    commands.insert_resource(sprite_info_handle);
+fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    game_infos: Res<Assets<GameInfo>>,
+) {
+    let game_info_handle = asset_server.load("main.game-info.ron");
+    commands.insert_resource(GameInfoHandle(game_info_handle.clone()));
 
-    let map_handle: Handle<helpers::tiled::TiledMap> =
-        asset_server.load("maps/TMX/oryx_16-bit_fantasy_test.tmx");
+    if let Some(info) = game_infos.get(&game_info_handle) {
+        let path = info.map_name.clone();
+        info!("{:?}", path);
+        let map_handle: Handle<helpers::tiled::TiledMap> =
+            // asset_server.load("maps/TMX/oryx_16-bit_fantasy_test.tmx");
+            asset_server.load(path);
 
-    commands.spawn(helpers::tiled::TiledMapBundle {
-        tiled_map: map_handle,
-        // transform: Transform::from_scale(Vec3::splat(1.0))
-        //     .with_translation(Vec3::new(0.0, 0.0, 0.1)),
-        ..Default::default()
-    });
+        commands.spawn(helpers::tiled::TiledMapBundle {
+            tiled_map: map_handle,
+            // transform: Transform::from_scale(Vec3::splat(1.0))
+            //     .with_translation(Vec3::new(0.0, 0.0, 0.1)),
+            ..Default::default()
+        });
+    }
 
     commands.spawn((Camera2dBundle::default(), PanCam::default()));
 }
@@ -92,19 +107,19 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 fn spawn_sprites(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    sprite_info: Res<SpriteInfoHandle>,
-    sprite_infos: Res<Assets<SpriteInfo>>,
+    game_info: Res<GameInfoHandle>,
+    game_infos: Res<Assets<GameInfo>>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     mut state: ResMut<NextState<AppState>>,
 ) {
-    if let Some(info) = sprite_infos.get(sprite_info.0.id()) {
-        let texture_handle = asset_server.load(info.sheet.clone());
+    if let Some(info) = game_infos.get(game_info.0.id()) {
+        let texture_handle = asset_server.load(info.sprite_info.sheet.clone());
         //let texture_handle = asset_server.load("gabe-idle-run.png");
         let texture_atlas = TextureAtlas::from_grid(
             texture_handle,
             Vec2::new(24.0, 24.0),
-            info.columns,
-            info.rows,
+            info.sprite_info.columns,
+            info.sprite_info.rows,
             None,
             None,
         );
@@ -115,7 +130,7 @@ fn spawn_sprites(
         commands.spawn((
             SpriteSheetBundle {
                 texture_atlas: texture_atlas_handle,
-                sprite: TextureAtlasSprite::new(info.frames[0]),
+                sprite: TextureAtlasSprite::new(info.sprite_info.frames[0]),
                 transform: Transform::from_scale(Vec3::splat(6.0))
                     .with_translation(Vec3::new(48.0, 48.0, 2.0)),
                 ..default()
