@@ -379,7 +379,7 @@ pub fn process_loaded_maps(
                                 &map_size,
                                 &grid_size,
                                 &map_type,
-                                layer_index as f32,
+                                (layer_index as f32) * 0.1,
                             ) * Transform::from_xyz(offset_x, -offset_y, 0.0),
                             map_type,
                             ..Default::default()

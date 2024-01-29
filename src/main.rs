@@ -117,7 +117,7 @@ fn spawn_sprites(
                 texture_atlas: texture_atlas_handle,
                 sprite: TextureAtlasSprite::new(info.frames[0]),
                 transform: Transform::from_scale(Vec3::splat(6.0))
-                    .with_translation(Vec3::new(48.0, 48.0, 1.0)),
+                    .with_translation(Vec3::new(48.0, 48.0, 2.0)),
                 ..default()
             },
             animation_frame,
