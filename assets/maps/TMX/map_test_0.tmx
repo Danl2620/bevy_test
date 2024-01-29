@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="64" height="64" tilewidth="24" tileheight="24" infinite="0" nextlayerid="10" nextobjectid="2">
+ <tileset firstgid="1" name="oryx_world" tilewidth="24" tileheight="24" tilecount="1764" columns="42">
+  <image source="../oryx_world.png" trans="000000" width="1024" height="1024"/>
+ </tileset>
+ <tileset firstgid="1765" name="oryx_creatures" tilewidth="24" tileheight="24" tilecount="486" columns="18">
+  <tileoffset x="0" y="-4"/>
+  <image source="../oryx_creatures.png" trans="000000" width="432" height="648"/>
+  <tile id="0" type="player">
+   <objectgroup draworder="index" id="3">
+    <object id="2" x="2.63167" y="2.03357" width="19.4983" height="21.6515"/>
+   </objectgroup>
+  </tile>
+  <tile id="1" type="player">
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="2" y="1" width="22" height="23"/>
+   </objectgroup>
+  </tile>
+  <tile id="98">
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="2" y="2" width="21" height="22"/>
+   </objectgroup>
+  </tile>
+  <tile id="343">
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="0" y="0" width="24" height="24"/>
+   </objectgroup>
+  </tile>
+  <tile id="359">
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="0" y="3" width="24" height="19"/>
+   </objectgroup>
+  </tile>
+ </tileset>
+ <tileset firstgid="2251" name="oryx_items" tilewidth="16" tileheight="16" tilecount="176" columns="22">
+  <tileoffset x="4" y="-4"/>
+  <image source="../oryx_items.png" trans="000000" width="352" height="128"/>
+ </tileset>
+ <layer id="1" name="background" width="64" height="64" visible="0" locked="1">
+  <data encoding="base64" compression="zlib">
+   eJztmN1OE0EUgHem5U9+TfQVvCCEf5CfiK8AGARBUCx4pbdeKBQexQv1BrhAQlBvFJ9ASMELNAThSl+gFIqeyZ6Tnk53u9DEdLadJl9m50y3zTfnzMxml4XjLFssFovFYrFYLBaLxWKxFECVdByJRKQbE9i/zsaIavxOD9AO3AU6gATQhrF2NqbaXvyveOTq/G//CvBJiwznSFrkxtP4fXVfF9CMtLDrZo94Vwj8yftCu+b4+QcxFCJ/8k6L7Pko1L/F8Pw3yOx616+pT/NA/kPCv+5pbyAGDffn+1udx37H56QpIP9qTrqVK8Pk/Kt8LgCvgEWZ22+S2XVwIDL596v5RMj8F9GZ/BcZ+vmQb/3TeugElkLiX6Od9Y1a/Tfic4FyV88F19D/tshe4/y8v6PF+wz2L3e2HMd5D2xjq9hw3LF1FiM+4NgU1ME41sIYtPeBx9gS89g+lObmf9Nx9yvFd/i/vYjbKlaAfWCV9TfR/wE47YpsvGKKScP995mfaoeBEWCUxdew/YL+T1iex2W2/xjWAsUTwmz/PeauPF8C34AFjK1iHSREJv9zAfnn1xOG55/qnObgDfAWeMfmZAXnQfefYnUQw7XO/dX4rOH+tO5p7dM88L3Ab/1Pyty1zv2nQ+D/GveANfTcYns9r429PPvfhMy/Fkz1/+hxxn3WWs4n9J/WzrqYdubF2NiMwf7lTi1QCdzEtkq4+3wU2wqME3V4XwfktIXRq/UH2XWnLL6nHzWAA0hs4xpLGKfv1OB9beA0AgwD94AB4JYHC1F3rNieQf6E8n0RzRDX5of8B9Bb+Y9Kdz7IuVXzbysBf4L8+7R672HX/VjzYfGn3Crimj+vf8UNkal/XuftPv0w+HM/3Z/nX1//ym9bZHt/FbnrP0z+/L0Nwcd1fz9aQ+JfL7LPt6DzrwHv6/I45zj9bKzbYP9yJwLPmBcyQz32q7H9i7lL43gUn0mPYDn8COAPtr+c4nv6IcDnDLySjB3pxqmfwtgZxtV9h+C0HnFZinpD44eG+5+i5zm2qi8xrtx3Mcb9f3v4H2Guw+afZN5JjVPmngzI/zHETkLqz9319ZBic1GK9b+j5f9Uc0+xvpd/EKb7U775+nciGf9z5l9Xov5nWu71dZHKs/+H2b9CO/+JWp94Jfof4/n+E+fhgJ37euzEYP9yJwa5mdF4RO84PcbmSiyXs477DkdHnV96TL3necb8L/sptmOQP3+/veFoZ7g2PluC/n7PL14U4m/yHJS7v1rPhdR/KbhT/vkeN5Jn/xtm+99VP8X29GPeudz59xzbp3n8+e+Gxd8SDv4BpJHiVw==
+  </data>
+ </layer>
+ <layer id="2" name="corners" width="64" height="64" visible="0" locked="1">
+  <data encoding="base64" compression="zlib">
+   eJzt2G9qwjAcxvHYNhcZgsKYJ9H6B9zeeg3ZBtKdxL0ZeBYPpL4QE0xHiC1ja6cm+X7gR6CV4JOkaVQIAAAAAAAA3FqRCfGR3fpbAAD+W8FeDwAAAADf3j38jbRLhdirOqTN+5rI5n1c24OZs24Lc0f+5n1c21DlHqnKI83fpi8P9z+g28K7zxfDiqw6v3t9VDMmHfWMJ06lHj73OvMgO7f2/P+0Fh4rsj55mN9WjoE9FsuacQgx/2/MVdZnp148yr9Nzq091+7611V+LjSD8ryb1tci4Py5meu1aj9VjU3m3FoDC3MdQPhWHr2/2qbPs2/SzzPsX7hn9575z6IvL++FyD27TU3+mby8FwN9nn1V2Y+R5K2yiTi7FvP+j/tzAhElHsk=
+  </data>
+ </layer>
+ <layer id="3" name="shadows" width="64" height="64" visible="0" locked="1">
+  <data encoding="base64" compression="zlib">
+   eJzt2M0KgzAMwPHC9qJ7XXH4Jrtsl912cVhKY5f6sTT9/yBQi0q1UWNDAAAAAAAAQK1BETXHATn3fw/gQLfLEj1q6flPx9rS2GHbcw6rNN9+6RmhBmjbXvWfdK6Ute9+KUePyOH4HoxC27q1vAiZ/l9Zy48v3mN5Pb/npdyXtmEL9Q/2qH/WzuPVOwoPHlF7vOb7tVqd//j6JaybLDxcs5TnW/Lfk9ccnlD/QDPHpeOY+3YNSXvK9ENGvqNlUu6W1sbTfbau/+I81H9gHvumWeMEvNH848KX2voH5/oAkpjjKQ==
+  </data>
+ </layer>
+ <layer id="4" name="creature shadow" width="64" height="64" visible="0" locked="1">
+  <data encoding="base64" compression="zlib">
+   eJzt2tEKhCAQBdD+/9Na+6cl9iWEFMJdd8ZzIAp68Y6hA7ZtAAAAAMzwmj2AAcrlunvfEr0Grfzl5vkUPfdove9kRVlqkiUHwLdFXC+P2QP4Y73ecAWr5QVY3ZO+IFsv8SRPtP0y25z9mvpR22cPAOg692rnOeNkqGW0/m0kvczH9VxYTdpa/xCspFR3AGKp97Os63kvV9bcABG8AZnYIxI=
+  </data>
+ </layer>
+ <layer id="5" name="objects" width="64" height="64" visible="0" locked="1">
+  <data encoding="base64" compression="zlib">
+   eJztmc1uEzEQx3eXdts+AAKSbtJWiDfgwAkk2khN8xK9cSugUq48BAhOEHqs+Lr2ykf6fau48QSlCEjbc2e0tvA6ttcbFbCd+UmWvV478n88M+vsRhFBEARBEARBEARBEMTFsBIPN291yHkusB5FT4aZd9dC87yndunAuheHXPtLmPcKStdT7Zwli/XXEvP9BQ9sgP7fKBmzV0HH8qXB4joPSq51qPYf9WaxP9qRJqx3lu1xxurDyeIYm3hAHjHt3dgP/den8joT9N2CvptT5nmtOI/vljBvQdj3OWjPeBD/NjysGP+E39ieA58H4N9boKEH5RjaR5IevP4M5VOJzqNJdf8PTb+PPDXY4Nig84XjPtKBZ/gzizV+kcbcmxgcc6XkPMhpOGSTtoX+tkPr/de02Z52/pIN5v6zbbvC/19V/kMwRpYk3/5ektuuWsYCQbjEGvP5xyOS8/izqFlR72sY/y2A8w3qvm3IVbp76xb2+uhBDlQ927MR8X0Ovus0vd9AG8k2CclGd0r8v2puuMx+zwf/L2OavceZlWzg0hn+IuHPv7VA9RE5rcSu4Lc98ToEbLWr5si8GRu8/jo2OM4lRI0HcVGbzg66fOe6Vh1c235czQ9CQdSP1DU665JfqJBjwAefEPUcKHxAN4fzHtobSf5+cyMpFt73wWHfKYt5LA2DXd5Cu8Z9R8gN11gb7206rN/EDekbVl2R+95ZaLMZ4zuqb0AhfBcaJU7Gi23cP7FPx/0A/Bv/x/8ErdNpFO1A3Ujz/ibUW+N5357CFitJXkKhzzTOp8UaQVvsSjbg+n23wS/QtQ3lN5Raqh6zr4kF1G6KAV/iowf6TplGXdz3LPKBr/QFbTPMB86EPmz3A9WP/p+lf3KcnP+22f3TQPWroPML4RLnyax2xg==
+  </data>
+ </layer>
+ <layer id="6" name="creatures" width="64" height="64">
+  <data encoding="base64" compression="zlib">
+   eJzt178OwVAUx/G7aM0m8Q42D2PpK5jEJhh5Ao9gVrtE0sXQ0RsY7GwSmiC5kbqive394/tJDHQ553dveg4hAAAAAAAAYMIuNF1BecdAiHYopp+eb770WDaD1HCGHUXvsVTb+q3O0mfvwd2R3QLTFdin1TRdgR6xZ3cVAKrSV7z3e5bOhINiD9JNzqArzZaVpXMmrPHMbL0fdWYAADBv9uNMjrI5cbJ0jhc1KZDBxbEMxjXufz66Onbe0CfK2Y3zfgNgn3MgpinzT5utB7Mw8qCHovZ/3LtskOUwfGZBJmrL7P3ZYOcRrwzIAgDclISPj/z93VyxE6ie2ST58r8nr+9PRo70XKUFGQDQ6A7xgSHs
+  </data>
+ </layer>
+ <objectgroup id="9" name="Object Layer 1">
+  <object id="1" name="player_start_0" type="spawn" gid="1767" x="586.369" y="490.805" width="24" height="24"/>
+ </objectgroup>
+</map>
