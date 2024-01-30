@@ -6,5 +6,5 @@
         columns: 20,
         rows: 27,
     ),
-    "map.main": File(path: "maps/TMX/oryx_16-bit_fantasy_test.tmx"),
+    "map.main": File(path: "maps/TMX/map_test_0.tmx"),
 })
