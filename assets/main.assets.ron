@@ -1,0 +1,10 @@
+({
+    "atlas.creatures": TextureAtlas (
+        path: "sprites/oryx_16bit_fantasy_creatures_trans.png",
+        tile_size_x: 24.,
+        tile_size_y: 24.,
+        columns: 20,
+        rows: 27,
+    ),
+    "map.main": File(path: "maps/TMX/oryx_16-bit_fantasy_test.tmx"),
+})
