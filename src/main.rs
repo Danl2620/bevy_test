@@ -216,8 +216,15 @@ fn spawn_level(
         ..Default::default()
     });
 
+    let mut camera_pos = Vec2::default();
+    let mut map_size = Vec2::default();
+
     // spawn characters
     if let Some(map) = tile_maps.get(&game_info.tile_map) {
+        map_size = Vec2::new(
+            (map.map.width * map.map.tile_width) as f32,
+            (map.map.height * map.map.tile_height) as f32,
+        );
         info!("spawn objects");
         let tile_layers = map
             .map
@@ -233,26 +240,41 @@ fn spawn_level(
                 if object.visible && object.user_type.eq_ignore_ascii_case("spawn") {
                     info!("spawning {}\n", object.name);
 
+                    let pos = Vec2::new(
+                        object.x,
+                        (map.map.height * map.map.tile_height) as f32 - object.y,
+                    );
+
                     let animation_frame = AnimationFrame(0);
                     commands.spawn((
                         SpriteSheetBundle {
                             texture_atlas: game_info.creature_atlas.clone(),
                             sprite: TextureAtlasSprite::new(22),
-                            transform: Transform::from_translation(Vec3::new(
-                                object.x,
-                                (map.map.height * map.map.tile_height) as f32 - object.y,
-                                2.0,
-                            )),
+                            transform: Transform::from_translation(Vec3::new(pos.x, pos.y, 2.0)),
                             ..default()
                         },
                         animation_frame,
                         AnimationTimer(Timer::from_seconds(0.2, TimerMode::Repeating)),
                     ));
+
+                    camera_pos = pos;
                 }
             }
         }
     }
 
-    commands.spawn((Camera2dBundle::default(), PanCam::default(), MainCamera));
+    commands
+        .spawn((Camera2dBundle::default(), MainCamera))
+        .insert(PanCam {
+            grab_buttons: vec![MouseButton::Left, MouseButton::Middle], // which buttons should drag the camera
+            enabled: true, // when false, controls are disabled. See toggle example.
+            zoom_to_cursor: true,
+            min_x: Some(0.),
+            min_y: Some(0.),
+            max_x: Some(map_size.x),
+            max_y: Some(map_size.y),
+            min_scale: 0.25,
+            max_scale: Some(30.),
+        });
     state.set(AppState::Level);
 }
