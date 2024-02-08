@@ -5,28 +5,21 @@ use bevy::prelude::*;
 use bevy_asset_loader::asset_collection::AssetCollection;
 use bevy_asset_loader::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
-use bevy_pancam::{PanCam, PanCamPlugin};
 
 use bevy_inspector_egui::bevy_egui::{EguiContext, EguiPlugin};
-use bevy_inspector_egui::bevy_inspector;
+//use bevy_inspector_egui::bevy_inspector;
 use bevy_inspector_egui::prelude::*;
 use bevy_window::PrimaryWindow;
 
-mod helpers;
+use camera::{PanCamPlugin, MainCamera};
+use state::AppState;
 
-#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
-enum AppState {
-    #[default]
-    Loading,
-    Level,
-}
+mod camera;
+mod helpers;
+mod state;
 
 #[derive(Reflect, Resource, Default)]
 struct WorldPosition(Vec2);
-
-/// Used to help identify our main camera
-#[derive(Component)]
-struct MainCamera;
 
 #[derive(AssetCollection, Resource)]
 struct GameInfoAlt {
@@ -107,13 +100,7 @@ fn update_mouse_position(
     q_window: Query<&Window, With<PrimaryWindow>>,
     // query to get camera transform
     q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
-    tilemap_q: Query<(
-        &TilemapSize,
-        &TilemapGridSize,
-        &TilemapType,
-        &TileStorage,
-        &Transform,
-    )>,
+    tilemap_q: Query<(&TilemapSize, &TilemapGridSize, &TilemapType, &Transform)>,
 ) {
     // get the camera info and transform
     // assuming there is exactly one main camera entity, so Query::single() is OK
@@ -133,7 +120,7 @@ fn update_mouse_position(
     }
 
     // run this block _AFTER_ the cursor position is calculated above
-    for (map_size, grid_size, map_type, _tile_storage, map_transform) in tilemap_q.iter() {
+    for (map_size, grid_size, map_type, map_transform) in tilemap_q.iter() {
         // Grab the cursor position from the `Res<CursorPos>`
         let cursor_pos: Vec2 = config.mouse_position.0;
         // We need to make sure that the cursor's world position is correct relative to the map
@@ -160,45 +147,11 @@ fn inspector_ui(world: &mut World) {
         .single(world)
         .clone();
 
-    // the usual `ResourceInspector` code
     egui::Window::new("Resource Inspector").show(egui_context.get_mut(), |ui| {
         egui::ScrollArea::both().show(ui, |ui| {
             bevy_inspector_egui::bevy_inspector::ui_for_resource::<Configuration>(world, ui);
         });
     });
-
-    // egui::Window::new("UI").show(egui_context.get_mut(), |ui| {
-    //     egui::ScrollArea::both().show(ui, |ui| {
-    //         //bevy_inspector::ui_for_world(world, ui);
-
-    //         for frame in &query {
-    //             // works with any `Reflect` value, including `Handle`s
-    //             let mut any_reflect_value: i32 = frame.0;
-    //             bevy_inspector::ui_for_value(&mut any_reflect_value, ui, world);
-    //         }
-
-    //         ui.heading("Entities");
-    //         bevy_inspector::ui_for_world_entities(world, ui);
-    //     })
-    // });
-
-    // egui::Window::new("UI").show(egui_context.get_mut(), |ui| {
-    //     egui::ScrollArea::both().show(ui, |ui| {
-    //         // equivalent to `WorldInspectorPlugin`
-    //         bevy_inspector::ui_for_world(world, ui);
-
-    //         // works with any `Reflect` value, including `Handle`s
-    //         let mut any_reflect_value: i32 = 5;
-    //         bevy_inspector::ui_for_value(&mut any_reflect_value, ui, world);
-
-    //         egui::CollapsingHeader::new("Materials").show(ui, |ui| {
-    //             bevy_inspector::ui_for_assets::<StandardMaterial>(world, ui);
-    //         });
-
-    //         ui.heading("Entities");
-    //         bevy_inspector::ui_for_world_entities(world, ui);
-    //     });
-    // });
 }
 
 fn spawn_level(
@@ -216,14 +169,14 @@ fn spawn_level(
         ..Default::default()
     });
 
-    let mut camera_pos = Vec2::default();
+    let mut _camera_pos = Vec2::default();
     let mut map_size = Vec2::default();
 
     // spawn characters
     if let Some(map) = tile_maps.get(&game_info.tile_map) {
         map_size = Vec2::new(
-            (map.map.width * map.map.tile_width) as f32,
-            (map.map.height * map.map.tile_height) as f32,
+            ((map.map.width - 1) * map.map.tile_width) as f32,
+            ((map.map.height - 1) * map.map.tile_height) as f32,
         );
         info!("spawn objects");
         let tile_layers = map
@@ -257,24 +210,24 @@ fn spawn_level(
                         AnimationTimer(Timer::from_seconds(0.2, TimerMode::Repeating)),
                     ));
 
-                    camera_pos = pos;
+                    _camera_pos = pos;
                 }
             }
         }
     }
 
-    commands
-        .spawn((Camera2dBundle::default(), MainCamera))
-        .insert(PanCam {
-            grab_buttons: vec![MouseButton::Left, MouseButton::Middle], // which buttons should drag the camera
-            enabled: true, // when false, controls are disabled. See toggle example.
-            zoom_to_cursor: true,
-            min_x: Some(0.),
-            min_y: Some(0.),
-            max_x: Some(map_size.x),
-            max_y: Some(map_size.y),
-            min_scale: 0.25,
-            max_scale: Some(30.),
-        });
+    // commands
+    //     .spawn((Camera2dBundle::default(), MainCamera))
+    //     .insert(PanCam {
+    //         grab_buttons: vec![MouseButton::Left, MouseButton::Middle], // which buttons should drag the camera
+    //         enabled: true, // when false, controls are disabled. See toggle example.
+    //         zoom_to_cursor: true,
+    //         min_x: Some(0.),
+    //         min_y: Some(0.),
+    //         max_x: Some(map_size.x),
+    //         max_y: Some(map_size.y),
+    //         min_scale: 0.25,
+    //         max_scale: Some(30.),
+    //     });
     state.set(AppState::Level);
 }
