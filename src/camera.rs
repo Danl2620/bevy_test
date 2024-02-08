@@ -341,14 +341,12 @@ pub struct PanCam {
 /// Its orthographic projection extends from `0.0` to `-far` in camera view space,
 /// corresponding to `Z=far-0.1` (closest to camera) to `Z=-0.1` (furthest away from
 /// camera) in world space.
-pub fn new_camera2d_with_constraints(far: f32) -> Camera2dBundle {
+pub fn new_camera2d_with_constraints(pancam: &PanCam) -> Camera2dBundle {
+
     // we want 0 to be "closest" and +far to be "farthest" in 2d, so we offset
     // the camera's translation by far and use a right handed coordinate system
-    let projection = OrthographicProjection {
-        far,
-        ..Default::default()
-    };
-    let transform = Transform::from_xyz(0.0, 0.0, far - 0.1);
+    let projection = OrthographicProjection::default();
+    let transform = Transform::from_xyz(0.0, 0.0, 1000.0 - 0.1);
     let view_projection =
         projection.get_projection_matrix() * transform.compute_matrix().inverse();
     let frustum = Frustum::from_view_projection_custom_far(
@@ -357,10 +355,32 @@ pub fn new_camera2d_with_constraints(far: f32) -> Camera2dBundle {
         &transform.back(),
         projection.far(),
     );
+
+
+    let proj_size = projection.area.size();
+    let mut proposed_cam_transform = transform;
+
+    let min_x_boundary = pancam.min_x.unwrap_or_else(|| f32::MIN);
+    let max_x_boundary = pancam.max_x.unwrap_or_else(|| f32::MAX);
+    let min_y_boundary = pancam.min_y.unwrap_or_else(|| f32::MIN);
+    let max_y_boundary = pancam.max_y.unwrap_or_else(|| f32::MAX);
+
+    let min_safe_cam_x = min_x_boundary + proj_size.x / 2.;
+    proposed_cam_transform.translation.x = proposed_cam_transform.translation.x.max(min_safe_cam_x);
+
+    let max_safe_cam_x = max_x_boundary - proj_size.x / 2.;
+    proposed_cam_transform.translation.x = proposed_cam_transform.translation.x.min(max_safe_cam_x);
+
+    let min_safe_cam_y = min_y_boundary + proj_size.y / 2.;
+    proposed_cam_transform.translation.y = proposed_cam_transform.translation.y.max(min_safe_cam_y);
+
+    let max_safe_cam_y = max_y_boundary - proj_size.y / 2.;
+    proposed_cam_transform.translation.y = proposed_cam_transform.translation.y.min(max_safe_cam_y);
+
     Camera2dBundle {
         projection,
         frustum,
-        transform,
+        transform: proposed_cam_transform,
         ..default()
     }
 }
@@ -368,18 +388,18 @@ pub fn new_camera2d_with_constraints(far: f32) -> Camera2dBundle {
 fn camera_spawn(
     mut commands: Commands,
 ) {
-    let cam2d = new_camera2d_with_constraints(10.);
     let pancam = PanCam {
-        grab_buttons: vec![MouseButton::Left, MouseButton::Right, MouseButton::Middle],
-        enabled: true,
-        zoom_to_cursor: true,
-        min_scale: 0.00001,
-        max_scale: None,
-        min_x: None,
+        min_scale: 0.25,
+        max_scale: Some(30.),
         max_x: None,
-        min_y: None,
         max_y: None,
+        min_x: Some(0.),
+        min_y: Some(0.),
+        //         max_x: Some(map_size.x),
+        //         max_y: Some(map_size.y),
+        ..default()
     };
+    let cam2d = new_camera2d_with_constraints(&pancam);
 
     // spawn the camera system
     commands.spawn((cam2d, pancam, MainCamera));
