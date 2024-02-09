@@ -21,6 +21,9 @@ mod state;
 #[derive(Reflect, Resource, Default)]
 struct WorldPosition(Vec2);
 
+#[derive(Component)]
+pub struct MainPlayer;
+
 #[derive(AssetCollection, Resource)]
 struct GameInfoAlt {
     #[asset(key = "atlas.creatures")]
@@ -55,6 +58,7 @@ fn main() {
             update_mouse_position.run_if(in_state(AppState::Level)),
         )
         .add_systems(Update, inspector_ui.run_if(in_state(AppState::Level)))
+        .add_systems(Update, player_movement.run_if(in_state(AppState::Level)))
         .run();
 }
 
@@ -208,6 +212,7 @@ fn spawn_level(
                         },
                         animation_frame,
                         AnimationTimer(Timer::from_seconds(0.2, TimerMode::Repeating)),
+                        MainPlayer,
                     ));
 
                     // _camera_pos = pos;
@@ -230,4 +235,51 @@ fn spawn_level(
     //         max_scale: Some(30.),
     //     });
     state.set(AppState::Level);
+}
+
+fn player_movement(
+    input: Res<Input<KeyCode>>,
+    mut query: Query<(&MainPlayer, &mut Transform)>,
+) {
+    let move_input = {
+        let mut p = IVec2::ZERO;
+
+        if input.just_pressed(KeyCode::Numpad1) || input.just_pressed(KeyCode::Z) {
+            p.x = -1;
+            p.y = -1;
+        }
+        if input.just_pressed(KeyCode::Numpad2) || input.just_pressed(KeyCode::X) || input.just_pressed(KeyCode::Down) {
+            p.y = -1;
+        }
+        if input.just_pressed(KeyCode::Numpad3) || input.just_pressed(KeyCode::C) {
+            p.x = 1;
+            p.y = -1;
+        }
+        if input.just_pressed(KeyCode::Numpad4) || input.just_pressed(KeyCode::A) || input.just_pressed(KeyCode::Left) {
+            p.x = -1;
+        }
+        if input.just_pressed(KeyCode::Numpad6) || input.just_pressed(KeyCode::D) || input.just_pressed(KeyCode::Right) {
+            p.x = 1;
+        }
+        if input.just_pressed(KeyCode::Numpad7) || input.just_pressed(KeyCode::Q) {
+            p.x = -1;
+            p.y = 1;
+        }
+        if input.just_pressed(KeyCode::Numpad8) || input.just_pressed(KeyCode::W) || input.just_pressed(KeyCode::Up) {
+            p.y = 1;
+        }
+        if input.just_pressed(KeyCode::Numpad9) || input.just_pressed(KeyCode::E) {
+            p.x = 1;
+            p.y = 1;
+        }
+        p
+    };
+
+    if move_input.cmpeq(IVec2::ZERO).all() {
+        return;
+    }
+
+    for (_player, mut xform) in &mut query {
+        xform.translation += Vec3::new(move_input.x as f32, move_input.y as f32, 0.);
+    }
 }
