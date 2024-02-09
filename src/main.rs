@@ -160,7 +160,7 @@ fn spawn_level(
     tile_maps: Res<Assets<helpers::tiled::TiledMap>>,
     mut state: ResMut<NextState<AppState>>,
 ) {
-    info!("spawn_sprites");
+    info!("spawn_level");
 
     commands.spawn(helpers::tiled::TiledMapBundle {
         tiled_map: game_info.tile_map.clone(),
@@ -169,15 +169,15 @@ fn spawn_level(
         ..Default::default()
     });
 
-    let mut _camera_pos = Vec2::default();
-    let mut map_size = Vec2::default();
+    // let mut _camera_pos = Vec2::default();
+    // let mut map_size = Vec2::default();
 
     // spawn characters
     if let Some(map) = tile_maps.get(&game_info.tile_map) {
-        map_size = Vec2::new(
-            ((map.map.width - 1) * map.map.tile_width) as f32,
-            ((map.map.height - 1) * map.map.tile_height) as f32,
-        );
+        // map_size = Vec2::new(
+        //     ((map.map.width - 1) * map.map.tile_width) as f32,
+        //     ((map.map.height - 1) * map.map.tile_height) as f32,
+        // );
         info!("spawn objects");
         let tile_layers = map
             .map
@@ -210,7 +210,7 @@ fn spawn_level(
                         AnimationTimer(Timer::from_seconds(0.2, TimerMode::Repeating)),
                     ));
 
-                    _camera_pos = pos;
+                    // _camera_pos = pos;
                 }
             }
         }

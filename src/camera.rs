@@ -6,11 +6,16 @@ use bevy::{
     render::camera::CameraProjection,
     window::PrimaryWindow,
 };
+use bevy_ecs_tilemap::prelude::*;
+// use bevy_ecs_tilemap::tiles::TilePos;
+// use bevy_ecs_tilemap::map::TilemapTileSize;
 use bevy::core_pipeline::tonemapping::{DebandDither, Tonemapping};
 use bevy::render::camera::CameraRenderGraph;
 use bevy::render::primitives::Frustum;
 use bevy::render::view::VisibleEntities;
+use bevy_ecs_tilemap::map::TilemapType;
 use bevy_inspector_egui::*;
+use crate::{GameInfoAlt, helpers};
 
 /// Plugin that adds the necessary systems for `PanCam` components to work
 #[derive(Default)]
@@ -246,50 +251,50 @@ fn camera_movement(
     *last_pos = Some(current_pos);
 }
 
-fn camera_setup(
-    primary_window: Query<&Window, With<PrimaryWindow>>,
-    mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>,
-    mut last_pos: Local<Option<Vec2>>,
-) {
-    info!("setup camera");
-    let window = primary_window.single();
-    for (cam, mut transform, projection) in &mut query {
-        if cam.enabled {
-            let proj_size = projection.area.size();
-            let mut proposed_cam_transform = transform.translation;
-
-            // Check whether the proposed camera movement would be within the provided boundaries, override it if we
-            // need to do so to stay within bounds.
-            if let Some(min_x_boundary) = cam.min_x {
-                let min_safe_cam_x = min_x_boundary + proj_size.x / 2.;
-                proposed_cam_transform.x = proposed_cam_transform.x.max(min_safe_cam_x);
-            }
-            if let Some(max_x_boundary) = cam.max_x {
-                let max_safe_cam_x = max_x_boundary - proj_size.x / 2.;
-                proposed_cam_transform.x = proposed_cam_transform.x.min(max_safe_cam_x);
-            }
-            if let Some(min_y_boundary) = cam.min_y {
-                let min_safe_cam_y = min_y_boundary + proj_size.y / 2.;
-                proposed_cam_transform.y = proposed_cam_transform.y.max(min_safe_cam_y);
-            }
-            if let Some(max_y_boundary) = cam.max_y {
-                let max_safe_cam_y = max_y_boundary - proj_size.y / 2.;
-                proposed_cam_transform.y = proposed_cam_transform.y.min(max_safe_cam_y);
-            }
-
-            transform.translation = proposed_cam_transform;
-        }
-    }
-
-    // Use position instead of MouseMotion, otherwise we don't get acceleration movement
-    {
-        let current_pos = match window.cursor_position() {
-            Some(c) => Vec2::new(c.x, -c.y),
-            None => return,
-        };
-        *last_pos = Some(current_pos);
-    }
-}
+// fn camera_setup(
+//     primary_window: Query<&Window, With<PrimaryWindow>>,
+//     mut query: Query<(&PanCam, &mut Transform, &OrthographicProjection)>,
+//     mut last_pos: Local<Option<Vec2>>,
+// ) {
+//     info!("setup camera");
+//     let window = primary_window.single();
+//     for (cam, mut transform, projection) in &mut query {
+//         if cam.enabled {
+//             let proj_size = projection.area.size();
+//             let mut proposed_cam_transform = transform.translation;
+//
+//             // Check whether the proposed camera movement would be within the provided boundaries, override it if we
+//             // need to do so to stay within bounds.
+//             if let Some(min_x_boundary) = cam.min_x {
+//                 let min_safe_cam_x = min_x_boundary + proj_size.x / 2.;
+//                 proposed_cam_transform.x = proposed_cam_transform.x.max(min_safe_cam_x);
+//             }
+//             if let Some(max_x_boundary) = cam.max_x {
+//                 let max_safe_cam_x = max_x_boundary - proj_size.x / 2.;
+//                 proposed_cam_transform.x = proposed_cam_transform.x.min(max_safe_cam_x);
+//             }
+//             if let Some(min_y_boundary) = cam.min_y {
+//                 let min_safe_cam_y = min_y_boundary + proj_size.y / 2.;
+//                 proposed_cam_transform.y = proposed_cam_transform.y.max(min_safe_cam_y);
+//             }
+//             if let Some(max_y_boundary) = cam.max_y {
+//                 let max_safe_cam_y = max_y_boundary - proj_size.y / 2.;
+//                 proposed_cam_transform.y = proposed_cam_transform.y.min(max_safe_cam_y);
+//             }
+//
+//             transform.translation = proposed_cam_transform;
+//         }
+//     }
+//
+//     // Use position instead of MouseMotion, otherwise we don't get acceleration movement
+//     {
+//         let current_pos = match window.cursor_position() {
+//             Some(c) => Vec2::new(c.x, -c.y),
+//             None => return,
+//         };
+//         *last_pos = Some(current_pos);
+//     }
+// }
 
 /// A component that adds panning camera controls to an orthographic camera
 #[derive(Component, Reflect)]
@@ -341,12 +346,15 @@ pub struct PanCam {
 /// Its orthographic projection extends from `0.0` to `-far` in camera view space,
 /// corresponding to `Z=far-0.1` (closest to camera) to `Z=-0.1` (furthest away from
 /// camera) in world space.
-pub fn new_camera2d_with_constraints(pancam: &PanCam) -> Camera2dBundle {
+pub fn new_camera2d_with_constraints(pancam: &PanCam, pos: &Vec3) -> Camera2dBundle {
 
     // we want 0 to be "closest" and +far to be "farthest" in 2d, so we offset
     // the camera's translation by far and use a right handed coordinate system
-    let projection = OrthographicProjection::default();
-    let transform = Transform::from_xyz(0.0, 0.0, 1000.0 - 0.1);
+    let projection = OrthographicProjection {
+        scale: 0.5,
+        ..default()
+    };
+    let transform = Transform::from_xyz(pos.x, pos.y, 1000.0 - 0.1);
     let view_projection =
         projection.get_projection_matrix() * transform.compute_matrix().inverse();
     let frustum = Frustum::from_view_projection_custom_far(
@@ -356,26 +364,24 @@ pub fn new_camera2d_with_constraints(pancam: &PanCam) -> Camera2dBundle {
         projection.far(),
     );
 
-
     let proj_size = projection.area.size();
     let mut proposed_cam_transform = transform;
 
-    let min_x_boundary = pancam.min_x.unwrap_or_else(|| f32::MIN);
-    let max_x_boundary = pancam.max_x.unwrap_or_else(|| f32::MAX);
-    let min_y_boundary = pancam.min_y.unwrap_or_else(|| f32::MIN);
-    let max_y_boundary = pancam.max_y.unwrap_or_else(|| f32::MAX);
+    // clamp to the given boundaries
+    {
+        let min_x_boundary = pancam.min_x.unwrap_or_else(|| f32::MIN);
+        let max_x_boundary = pancam.max_x.unwrap_or_else(|| f32::MAX);
+        let min_y_boundary = pancam.min_y.unwrap_or_else(|| f32::MIN);
+        let max_y_boundary = pancam.max_y.unwrap_or_else(|| f32::MAX);
 
-    let min_safe_cam_x = min_x_boundary + proj_size.x / 2.;
-    proposed_cam_transform.translation.x = proposed_cam_transform.translation.x.max(min_safe_cam_x);
+        let min_safe_cam_x = min_x_boundary + proj_size.x / 2.;
+        let max_safe_cam_x = max_x_boundary - proj_size.x / 2.;
+        proposed_cam_transform.translation.x = proposed_cam_transform.translation.x.clamp(min_safe_cam_x, max_safe_cam_x);
 
-    let max_safe_cam_x = max_x_boundary - proj_size.x / 2.;
-    proposed_cam_transform.translation.x = proposed_cam_transform.translation.x.min(max_safe_cam_x);
-
-    let min_safe_cam_y = min_y_boundary + proj_size.y / 2.;
-    proposed_cam_transform.translation.y = proposed_cam_transform.translation.y.max(min_safe_cam_y);
-
-    let max_safe_cam_y = max_y_boundary - proj_size.y / 2.;
-    proposed_cam_transform.translation.y = proposed_cam_transform.translation.y.min(max_safe_cam_y);
+        let min_safe_cam_y = min_y_boundary + proj_size.y / 2.;
+        let max_safe_cam_y = max_y_boundary - proj_size.y / 2.;
+        proposed_cam_transform.translation.y = proposed_cam_transform.translation.y.clamp(min_safe_cam_y, max_safe_cam_y);
+    }
 
     Camera2dBundle {
         projection,
@@ -387,19 +393,47 @@ pub fn new_camera2d_with_constraints(pancam: &PanCam) -> Camera2dBundle {
 
 fn camera_spawn(
     mut commands: Commands,
+    game_info: Res<GameInfoAlt>,
+    tile_maps: Res<Assets<helpers::tiled::TiledMap>>,
 ) {
+    info!("camera_spawn");
+
+    let mut camera_pos = Vec3::default();
+    let mut map_size = Vec2::default();
+    if let Some(map) = tile_maps.get(&game_info.tile_map) {
+        map_size = Vec2::new(
+            ((map.map.width - 1) * map.map.tile_width) as f32,
+            ((map.map.height - 1) * map.map.tile_height) as f32,
+        );
+
+        let tile_size = TilemapTileSize { x: map.map.tile_width as f32, y: map.map.tile_height as f32 };
+        let grid_size = tile_size.into();
+
+        let map_type = TilemapType::Square;
+
+        let low = TilePos::new(0, 0).center_in_world(&grid_size, &map_type);
+        let high = TilePos::new(map.map.width - 1, map.map.height - 1).center_in_world(&grid_size, &map_type);
+        let diff = high - low;
+
+        let xform = Transform::from_xyz(diff.x / 2., diff.y / 2., 0.);
+        camera_pos = xform.translation;
+    }
+    else {
+        warn!("can't find tile map for camera setup!")
+    }
+
     let pancam = PanCam {
         min_scale: 0.25,
         max_scale: Some(30.),
-        max_x: None,
-        max_y: None,
+        //max_x: None,
+        //max_y: None,
         min_x: Some(0.),
         min_y: Some(0.),
-        //         max_x: Some(map_size.x),
-        //         max_y: Some(map_size.y),
+        max_x: Some(map_size.x),
+        max_y: Some(map_size.y),
         ..default()
     };
-    let cam2d = new_camera2d_with_constraints(&pancam);
+    let cam2d = new_camera2d_with_constraints(&pancam, &camera_pos);
 
     // spawn the camera system
     commands.spawn((cam2d, pancam, MainCamera));
