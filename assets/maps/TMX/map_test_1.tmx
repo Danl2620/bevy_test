@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.1" orientation="orthogonal" renderorder="right-down" width="28" height="20" tilewidth="24" tileheight="24" infinite="0" nextlayerid="10" nextobjectid="2">
+<map version="1.8" tiledversion="1.8.1" orientation="orthogonal" renderorder="right-down" width="28" height="40" tilewidth="24" tileheight="24" infinite="0" nextlayerid="12" nextobjectid="2">
  <tileset firstgid="1" name="oryx_world" tilewidth="24" tileheight="24" tilecount="1764" columns="42">
   <image source="../oryx_world.png" trans="000000" width="1024" height="1024"/>
+  <tile id="50">
+   <objectgroup draworder="index" id="4">
+    <object id="3" x="0" y="0" width="24" height="24"/>
+   </objectgroup>
+  </tile>
  </tileset>
  <tileset firstgid="1765" name="oryx_creatures" tilewidth="24" tileheight="24" tilecount="486" columns="18">
   <tileoffset x="0" y="-4"/>
@@ -36,12 +41,20 @@
   <tileoffset x="4" y="-4"/>
   <image source="../oryx_items.png" trans="000000" width="352" height="128"/>
  </tileset>
- <layer id="1" name="background" width="28" height="20">
+ <tileset firstgid="2427" name="oryx_16bit_fantasy_world_trans" tilewidth="24" tileheight="24" tilecount="2296" columns="56">
+  <image source="../oryx_16bit_fantasy_world_trans.png" width="1366" height="1007"/>
+ </tileset>
+ <layer id="1" name="background" width="28" height="40">
   <data encoding="base64" compression="zlib">
-   eJy9lN1KQkEQx3f3IH0QZa8hQpZ9QWSvUIF50ozKeonSepUuqhv1okKybqo3iPDYRa+i0SzO4JzxfEBgFz9md5bd//nP7B5XKeX+MxNGKRPCfEBu0gz2rWilMsAWsAh0gAXMZdiajat6qJeA/X09pIf09WjexgTqZWGcQtJsnArIZwP0SOdHjDlhenHkIvR67Gyu/1e9tPA3a/z1k2Oaky7p5SLqSL0lNoQevw8zAfeDf0Myxp/9hmXgkiH7VwUugJoZnSeN3+e3HvoLq2EnRq+GGqRXY8j7G9U/qu8ScBWiNyXe2pyop507qKkhTqPemugRf2+bIr+uo/8B4+QJeADeMVoece2e5Yg2rpXAZwG95iHuAUcYiTOMB2ao11KD/lq+HKU8ZxAtdaALNNi8hfv24YxP7ScoZykKvS47z8ZtYAfYZfkmxjfcd8J8FIxfL49eKd/Rfj2Padlzz4EPoIq5Bvq0+8jfaYw/PnaFP6obad4At8Ad+4Y66kq9EvNZwV5xPbt+LPSob57jryvvZVj/ima0V1yvHKB3jT1s4rl0Z9vCuxdxX1wTXVvSew64868icl5wX1nc/Yp4AxW2dmjC3+M4+QUx6wRe
+   eJztlEtOAkEQhnuaENEYxWsYElF8JUa8gpqIAmJQcOsBFPQYbl2oG2ChhqBu1Bu4AFx4FTBWZ6oyRTGPxAirWXyp7mp6/v6ruilElCqMmQmtlPZgziUX0/a+FUupJLAFLAJtYAFzSbZm4qrl6EVhf99y6CF9azhvYhT1UjCeRxJsPO+ST7nokc6PGHO89IJI++j12Le5/l/1EsLfjB6snxzTnHRJL+1TR+otsSH0NGqaOC3mMXGeeIA/c4Zl4JIh+1cBLoCqHp7H9aDPb8vx51XDdoBeFTVIr8qQ99evf1TfJeDKQ29SvLVZ8d7MPIKaFsQp1FsTPeLvbVPk1y3//4BR0lJKPQIfGA1Pyl57YDniGdfy4HMfve5BzABFjMQpxkPt6DWV3V/DF8w7ETsaakAXqLN5E/WyevjsbjmZN/u77HsmbgM7wC7LNzC+o94J80E+s8xvkeXLQq/DtMx3z4FPoIK5Ovo0NSB/5QB/XmOzn+pGmrfAHXDPzlBDXamXZz5LrFdZtn4s9Khv1DvS5b306l9O+MwJvYKL3g32sIHfbbG7yL13fO7LgXav7Zke/O2Ly51/E5HzqpxzZ0Qt+RsosbUjj3v731yPSSckJCQkJCQkZFT8Aidsy9M=
   </data>
  </layer>
- <objectgroup id="9" name="Object Layer 1">
+ <layer id="11" name="Object Layer" width="28" height="40">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgF+IAW90C7gDogepj4Y7iCm5zYxa/jEIcBjdF4HQWjYBSMglEwCkbBKBgFo2AUjIIhAQDkCQKR
+  </data>
+ </layer>
+ <objectgroup id="9" name="Spawner Layer">
   <object id="1" name="player_start_0" type="spawn" gid="1767" x="59.7023" y="89.4717" width="24" height="24"/>
  </objectgroup>
 </map>

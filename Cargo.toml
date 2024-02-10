@@ -3,14 +3,24 @@ name = "bevy_test"
 version = "0.1.0"
 edition = "2021"
 
+
+[features]
+atlas = []
+default = ["atlas"]
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 bevy = "0.12"
 bevy-inspector-egui = "0.22.1"
-bevy_asset_loader = { version = "0.19.1", features = ["standard_dynamic_assets","2d"]}
+bevy_asset_loader = { version = "0.19.1", features = [
+    "standard_dynamic_assets",
+    "2d",
+] }
 bevy_common_assets = { version = "0.9.0", features = ["ron"] }
-bevy_ecs_tilemap = { git = "https://github.com/StarArawn/bevy_ecs_tilemap", branch = "main" }
+bevy_ecs_tilemap = { git = "https://github.com/StarArawn/bevy_ecs_tilemap", branch = "main", features = [
+    "atlas",
+] }
 bevy_window = "0.12.1"
 bevy_mouse_position = { git = "https://github.com/adrocodes/bevy_mouse_position" }
 egui = "0.24"
