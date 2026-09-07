@@ -80,6 +80,9 @@ struct Configuration {
     option: f32,
     mouse_position: WorldPosition,
     cursor_in_map_pos: Vec2,
+    /// Lets the mouse pan and zoom the camera. Off by default so that stray clicks
+    /// and drags during play don't move the view.
+    debug_camera: bool,
 }
 
 #[derive(Component)]
@@ -201,41 +204,22 @@ fn spawn_level(
     // spawn characters
     if let Some(map) = tile_maps.get(&game_info.tile_map) {
         info!("spawn objects");
-        let tile_layers = map
-            .map
-            .layers()
-            .filter_map(|layer| match layer.layer_type() {
-                tiled::LayerType::Objects(layer) => Some(layer),
-                _ => None,
-            });
+        for spawn in helpers::spawn_points(map) {
+            info!("spawning {}", spawn.name);
 
-        for layer in tile_layers {
-            //my_renderer.render(layer);
-            for object in layer.objects() {
-                if object.visible && object.user_type.eq_ignore_ascii_case("spawn") {
-                    info!("spawning {}\n", object.name);
-
-                    let pos = Vec2::new(
-                        object.x,
-                        (map.map.height * map.map.tile_height) as f32 - object.y,
-                    );
-
-                    let animation_frame = AnimationFrame(0);
-                    commands.spawn((
-                        Sprite::from_atlas_image(
-                            game_info.creature_image.clone(),
-                            TextureAtlas {
-                                layout: game_info.creature_layout.clone(),
-                                index: 22,
-                            },
-                        ),
-                        Transform::from_translation(Vec3::new(pos.x, pos.y, 2.0)),
-                        animation_frame,
-                        AnimationTimer(Timer::from_seconds(0.2, TimerMode::Repeating)),
-                        MainPlayer,
-                    ));
-                }
-            }
+            commands.spawn((
+                Sprite::from_atlas_image(
+                    game_info.creature_image.clone(),
+                    TextureAtlas {
+                        layout: game_info.creature_layout.clone(),
+                        index: 22,
+                    },
+                ),
+                Transform::from_translation(spawn.position.extend(2.0)),
+                AnimationFrame(0),
+                AnimationTimer(Timer::from_seconds(0.2, TimerMode::Repeating)),
+                MainPlayer,
+            ));
         }
     }
 }
