@@ -69,6 +69,8 @@ fn main() {
             inspector_ui.run_if(in_state(AppState::Level)),
         )
         .add_systems(Update, player_movement.run_if(in_state(AppState::Level)))
+        // Not state-gated, so escape also works while the level is still loading.
+        .add_systems(Update, exit_on_escape)
         .run();
 }
 
@@ -281,4 +283,27 @@ fn player_movement(
     for mut xform in &mut query {
         xform.translation += Vec3::new(move_input.x as f32, move_input.y as f32, 0.);
     }
+}
+
+/// Quits on escape, via `AppExit` so bevy gets to shut down cleanly rather than the
+/// process being torn down under it.
+fn exit_on_escape(
+    input: Res<ButtonInput<KeyCode>>,
+    mut egui_contexts: Query<&mut EguiContext, With<PrimaryEguiContext>>,
+    mut exit: MessageWriter<AppExit>,
+) {
+    if !input.just_pressed(KeyCode::Escape) {
+        return;
+    }
+
+    // Don't quit out from under the inspector: egui uses escape to cancel out of a
+    // focused text field, and `Configuration::name` is one.
+    if let Ok(mut context) = egui_contexts.single_mut() {
+        if context.get_mut().egui_wants_keyboard_input() {
+            return;
+        }
+    }
+
+    info!("escape pressed, exiting");
+    exit.write(AppExit::Success);
 }
