@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.8" tiledversion="1.8.1" orientation="orthogonal" renderorder="right-down" width="28" height="40" tilewidth="24" tileheight="24" infinite="0" nextlayerid="12" nextobjectid="2">
  <tileset firstgid="1" name="oryx_world" tilewidth="24" tileheight="24" tilecount="1764" columns="42">
-  <image source="../oryx_world.png" trans="000000" width="1024" height="1024"/>
+  <image source="../oryx_world.png" trans="000000" width="1008" height="1008"/>
   <tile id="50">
    <objectgroup draworder="index" id="4">
     <object id="3" x="0" y="0" width="24" height="24"/>
@@ -42,7 +42,7 @@
   <image source="../oryx_items.png" trans="000000" width="352" height="128"/>
  </tileset>
  <tileset firstgid="2427" name="oryx_16bit_fantasy_world_trans" tilewidth="24" tileheight="24" tilecount="2296" columns="56">
-  <image source="../oryx_16bit_fantasy_world_trans.png" width="1366" height="1007"/>
+  <image source="../oryx_16bit_fantasy_world_trans.png" width="1344" height="984"/>
  </tileset>
  <layer id="1" name="background" width="28" height="40">
   <data encoding="base64" compression="zlib">

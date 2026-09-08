@@ -4,7 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-atlas = []
+# Actually forwarded to bevy_ecs_tilemap now; the old `atlas = []` was a local no-op
+# that left the dependency's own `atlas` feature switched on unconditionally.
+#
+# Atlas mode is required here, not just preferred: the alternative texture-array path
+# needs one array layer per tile, and oryx_16bit_fantasy_world_trans has 2296 of them
+# against a GPU limit of 2048.
+atlas = ["bevy_ecs_tilemap/atlas"]
 default = ["atlas"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -20,7 +26,7 @@ bevy_asset_loader = { version = "0.27.0", features = [
     "standard_dynamic_assets",
     "2d",
 ] }
-bevy_ecs_tilemap = { version = "0.19.0", features = ["atlas"] }
+bevy_ecs_tilemap = "0.19.0"
 bevy_pancam = { version = "0.21.0", features = ["bevy_egui_0_40"] }
 thiserror = { version = "2.0" }
 tiled = { version = "0.14.0", default-features = false }

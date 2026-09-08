@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="64" height="64" tilewidth="24" tileheight="24" infinite="0" nextlayerid="10" nextobjectid="2">
  <tileset firstgid="1" name="oryx_world" tilewidth="24" tileheight="24" tilecount="1764" columns="42">
-  <image source="../oryx_world.png" trans="000000" width="1024" height="1024"/>
+  <image source="../oryx_world.png" trans="000000" width="1008" height="1008"/>
  </tileset>
  <tileset firstgid="1765" name="oryx_creatures" tilewidth="24" tileheight="24" tilecount="486" columns="18">
   <tileoffset x="0" y="-4"/>
