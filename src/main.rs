@@ -12,10 +12,12 @@ use bevy_inspector_egui::bevy_egui::{EguiContext, EguiPlugin, EguiPrimaryContext
 use bevy_inspector_egui::prelude::*;
 
 use camera::{CameraPlugin, MainCamera};
+use grid::{CollisionMap, GridMotion, GridPlugin, GridPos};
 use helpers::tiled::TiledMapHandle;
 use state::AppState;
 
 mod camera;
+mod grid;
 mod helpers;
 mod state;
 
@@ -43,6 +45,7 @@ fn main() {
             EguiPlugin::default(),
             PanCamPlugin,
             CameraPlugin,
+            GridPlugin,
             TilemapPlugin,
             helpers::tiled::TiledMapPlugin,
         ))
@@ -74,7 +77,7 @@ fn main() {
         .run();
 }
 
-#[derive(Reflect, Resource, Default, InspectorOptions)]
+#[derive(Reflect, Resource, InspectorOptions)]
 #[reflect(Resource, InspectorOptions)]
 struct Configuration {
     name: String,
@@ -85,6 +88,32 @@ struct Configuration {
     /// Lets the mouse pan and zoom the camera. Off by default so that stray clicks
     /// and drags during play don't move the view.
     debug_camera: bool,
+    /// Seconds an entity takes to slide from one cell to the next.
+    #[inspector(min = 0.0, max = 1.0)]
+    move_duration: f32,
+    /// How gradually a slide departs. 0 leaves the start abrupt.
+    #[inspector(min = 0.0, max = 1.0)]
+    move_ease_in: f32,
+    /// How gradually a slide arrives. 0 leaves the finish abrupt.
+    #[inspector(min = 0.0, max = 1.0)]
+    move_ease_out: f32,
+}
+
+impl Default for Configuration {
+    fn default() -> Self {
+        Self {
+            name: String::new(),
+            option: 0.,
+            mouse_position: WorldPosition::default(),
+            cursor_in_map_pos: Vec2::ZERO,
+            debug_camera: false,
+            // Short enough to stay responsive when a direction is tapped repeatedly.
+            move_duration: 0.12,
+            // Matches CSS `ease-in-out`; see `grid::motion_curve`.
+            move_ease_in: 0.42,
+            move_ease_out: 0.42,
+        }
+    }
 }
 
 #[derive(Component)]
@@ -205,9 +234,15 @@ fn spawn_level(
 
     // spawn characters
     if let Some(map) = tile_maps.get(&game_info.tile_map) {
+        let collision = CollisionMap::from_map(map);
+
         info!("spawn objects");
         for spawn in helpers::spawn_points(map) {
             info!("spawning {}", spawn.name);
+
+            // Snap to the containing cell, so an object left slightly off the grid in
+            // the editor still lines up with the tiles.
+            let cell = collision.world_to_cell(spawn.position);
 
             commands.spawn((
                 Sprite::from_atlas_image(
@@ -217,19 +252,32 @@ fn spawn_level(
                         index: 22,
                     },
                 ),
-                Transform::from_translation(spawn.position.extend(2.0)),
+                Transform::from_translation(collision.cell_to_world(cell).extend(2.0)),
+                GridPos(cell),
                 AnimationFrame(0),
                 AnimationTimer(Timer::from_seconds(0.2, TimerMode::Repeating)),
                 MainPlayer,
             ));
         }
+
+        commands.insert_resource(collision);
+    } else {
+        error!("no tile map, so no collision and no characters");
     }
 }
 
 fn player_movement(
+    mut commands: Commands,
     input: Res<ButtonInput<KeyCode>>,
-    mut query: Query<&mut Transform, With<MainPlayer>>,
+    config: Res<Configuration>,
+    collision: Option<Res<CollisionMap>>,
+    // `Without<GridMotion>` means a keypress during a slide is ignored rather than
+    // queued, so the player can't outrun the animation.
+    mut query: Query<(Entity, &mut GridPos), (With<MainPlayer>, Without<GridMotion>)>,
 ) {
+    let Some(collision) = collision else {
+        return;
+    };
     let move_input = {
         let mut p = IVec2::ZERO;
 
@@ -280,8 +328,15 @@ fn player_movement(
         return;
     }
 
-    for mut xform in &mut query {
-        xform.translation += Vec3::new(move_input.x as f32, move_input.y as f32, 0.);
+    for (entity, mut grid_pos) in &mut query {
+        grid::try_step(
+            &mut commands,
+            entity,
+            &mut grid_pos,
+            move_input,
+            &collision,
+            &config,
+        );
     }
 }
 

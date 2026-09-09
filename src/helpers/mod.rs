@@ -2,7 +2,12 @@ pub mod tiled;
 
 use bevy::prelude::*;
 
-/// A visible object in one of the map's object layers whose Tiled *type* is `spawn`.
+/// The object layer that spawn points are authored on. Objects elsewhere in the map are
+/// ignored, so an object layer can be added for something else without it accidentally
+/// spawning entities.
+const SPAWNER_LAYER: &str = "Spawner Layer";
+
+/// A visible object in the map's spawner layer whose Tiled *type* is `spawn`.
 pub struct SpawnPoint {
     pub name: String,
     pub position: Vec2,
@@ -18,7 +23,11 @@ pub fn spawn_points(map: &tiled::TiledMap) -> Vec<SpawnPoint> {
     let mut points = Vec::new();
 
     for layer in map.map.layers() {
+        if layer.name != SPAWNER_LAYER {
+            continue;
+        }
         let ::tiled::LayerType::Objects(object_layer) = layer.layer_type() else {
+            warn!("'{SPAWNER_LAYER}' is not an object layer, so it has no spawn points");
             continue;
         };
         for object in object_layer.objects() {
