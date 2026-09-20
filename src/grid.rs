@@ -4,12 +4,17 @@
 //! is derived from it, so an entity is never left between cells: a move commits to the
 //! destination immediately and the slide is presentation only.
 
+use bevy::asset::saver::{AssetSaver, SavedAsset};
+use bevy::asset::{AsyncWriteExt, ErasedLoadedAsset, LoadedAsset};
 use bevy::math::cubic_splines::CubicSegment;
 use bevy::prelude::*;
+use bevy::tasks::block_on;
+use bevy_common_assets::ron::{RonAssetPlugin, RonAssetSaver};
+use serde::{Deserialize, Serialize};
 
 use crate::helpers::tiled::TiledMap;
 use crate::state::AppState;
-use crate::Configuration;
+use crate::{Configuration, GameInfoAlt};
 
 /// The Tiled tile class ("Class" in the tileset editor, `type=` in the TSX) that marks a
 /// cell as impassable.
@@ -18,6 +23,139 @@ use crate::Configuration;
 /// other than walls, so treating any shape as solid would make unrelated authoring
 /// silently blocking.
 const WALL_CLASS: &str = "wall";
+
+/// Initial values for grid movement, loaded from `assets/main.movement.ron`.
+///
+/// These only seed `Configuration` when the level starts; the inspector owns the live
+/// values from then on, so retuning in-game doesn't write back to the file.
+#[derive(Asset, TypePath, Debug, Clone, Deserialize, Serialize)]
+pub struct MovementSettings {
+    /// Seconds an entity takes to slide from one cell to the next.
+    pub duration: f32,
+    /// How gradually a slide departs. 0 leaves the start abrupt.
+    pub ease_in: f32,
+    /// How gradually a slide arrives. 0 leaves the finish abrupt.
+    pub ease_out: f32,
+}
+
+impl Default for MovementSettings {
+    fn default() -> Self {
+        Self {
+            // Short enough to stay responsive when a direction is tapped repeatedly.
+            duration: 0.12,
+            // Matches CSS `ease-in-out`; see `motion_curve`.
+            ease_in: 0.42,
+            ease_out: 0.42,
+        }
+    }
+}
+
+/// Copies the loaded movement settings into `Configuration` as the level starts.
+fn apply_movement_settings(
+    game_info: Res<GameInfoAlt>,
+    settings: Res<Assets<MovementSettings>>,
+    mut config: ResMut<Configuration>,
+) {
+    let Some(settings) = settings.get(&game_info.movement) else {
+        warn!("no movement settings asset; keeping the built-in defaults");
+        return;
+    };
+
+    info!(?settings, "applying movement settings");
+    config.move_duration = settings.duration;
+    config.move_ease_in = settings.ease_in;
+    config.move_ease_out = settings.ease_out;
+}
+
+/// Asks for the live values in `Configuration` to be written back over the movement
+/// settings file.
+#[derive(Message, Default)]
+pub struct SaveMovementSettings;
+
+/// Prepended to the file on every save.
+///
+/// `RonAssetSaver` emits only the serialized value, so anything explanatory has to be
+/// written alongside it -- and because the whole file is rewritten, notes added here by
+/// hand are lost on the next save.
+const FILE_HEADER: &str = "\
+// Initial values for grid movement.
+//
+// These seed `Configuration` when the level starts. Saving from the inspector rewrites
+// this file, so hand-written notes here will not survive a round trip.
+//
+//   duration   seconds an entity takes to slide from one cell to the next
+//   ease_in    delays the departure of that slide, 0..=1
+//   ease_out   softens its arrival, 0..=1
+//
+// ease_in / ease_out pairs, as CSS `cubic-bezier` equivalents:
+//
+//   0.0  / 0.0    linear
+//   0.42 / 0.42   ease-in-out
+//   0.42 / 0.0    ease-in
+//   0.0  / 0.42   ease-out
+";
+
+/// Writes `Configuration`'s movement values back over the settings file.
+///
+/// This runs synchronously. The payload is a few dozen bytes, and blocking briefly in a
+/// debug tool is easier to reason about than a detached task whose failure would surface
+/// somewhere unrelated -- or not at all.
+fn save_movement_settings(
+    mut requests: MessageReader<SaveMovementSettings>,
+    asset_server: Res<AssetServer>,
+    game_info: Res<GameInfoAlt>,
+    config: Res<Configuration>,
+) {
+    // Coalesced, so several clicks in one frame still write once.
+    if requests.read().count() == 0 {
+        return;
+    }
+
+    // Resolved from the handle rather than hardcoded, so this follows the path if the
+    // `settings.movement` key in `main.assets.ron` is ever repointed.
+    let Some(asset_path) = asset_server.get_path(&game_info.movement) else {
+        error!("movement settings have no source path; not saving");
+        return;
+    };
+    let source_id = asset_path.source().clone_owned();
+    let path = asset_path.path().to_path_buf();
+
+    let source = match asset_server.get_source(&source_id) {
+        Ok(source) => source,
+        Err(err) => {
+            error!("no asset source to save movement settings to: {err}");
+            return;
+        }
+    };
+
+    let settings = MovementSettings {
+        duration: config.move_duration,
+        ease_in: config.move_ease_in,
+        ease_out: config.move_ease_out,
+    };
+    let loaded: ErasedLoadedAsset = LoadedAsset::from(settings.clone()).into();
+    let Some(saved) = SavedAsset::<MovementSettings>::from_loaded(&loaded) else {
+        error!("could not wrap movement settings for saving");
+        return;
+    };
+
+    let result: Result<(), Box<dyn core::error::Error>> = block_on(async {
+        let mut writer = source.writer()?.write(&path).await?;
+        writer.write_all(FILE_HEADER.as_bytes()).await?;
+        RonAssetSaver::<MovementSettings>::default()
+            .save(&mut *writer, saved, &(), asset_path.clone())
+            .await?;
+        // `to_string` leaves no trailing newline.
+        writer.write_all(b"\n").await?;
+        writer.flush().await?;
+        Ok(())
+    });
+
+    match result {
+        Ok(()) => info!(?settings, "saved movement settings to {}", path.display()),
+        Err(err) => error!("could not save movement settings: {err}"),
+    }
+}
 
 /// Which cell an entity occupies.
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
@@ -205,10 +343,17 @@ pub struct GridPlugin;
 
 impl Plugin for GridPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            advance_grid_motion.run_if(in_state(AppState::Level)),
-        );
+        // A distinctive extension rather than a bare `ron`, so this loader can't claim
+        // files meant for something else. Bevy matches the longest extension first, so
+        // `main.assets.ron` still reaches the asset-loader collection.
+        app.add_plugins(RonAssetPlugin::<MovementSettings>::new(&["movement.ron"]))
+            .add_message::<SaveMovementSettings>()
+            .add_systems(OnEnter(AppState::Level), apply_movement_settings)
+            .add_systems(
+                Update,
+                (advance_grid_motion, save_movement_settings)
+                    .run_if(in_state(AppState::Level)),
+            );
     }
 }
 

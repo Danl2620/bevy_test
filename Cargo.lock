@@ -1754,10 +1754,12 @@ dependencies = [
  "bevy",
  "bevy-inspector-egui",
  "bevy_asset_loader",
+ "bevy_common_assets",
  "bevy_ecs_tilemap",
  "bevy_egui",
  "bevy_pancam",
  "egui",
+ "serde",
  "thiserror 2.0.20",
  "tiled",
 ]

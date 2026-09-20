@@ -8,6 +8,9 @@
         columns: 20,
         rows: 27,
     ),
+    "settings.movement": File (
+        path: "main.movement.ron",
+    ),
     "map.main": File (
         path: "maps/TMX/map_test_1.tmx",
     ),

@@ -1,0 +1,16 @@
+// Initial values for grid movement.
+//
+// These seed `Configuration` when the level starts. Saving from the inspector rewrites
+// this file, so hand-written notes here will not survive a round trip.
+//
+//   duration   seconds an entity takes to slide from one cell to the next
+//   ease_in    delays the departure of that slide, 0..=1
+//   ease_out   softens its arrival, 0..=1
+//
+// ease_in / ease_out pairs, as CSS `cubic-bezier` equivalents:
+//
+//   0.0  / 0.0    linear
+//   0.42 / 0.42   ease-in-out
+//   0.42 / 0.0    ease-in
+//   0.0  / 0.42   ease-out
+(duration:0.12,ease_in:0.42,ease_out:0.42)

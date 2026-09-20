@@ -33,6 +33,8 @@ struct GameInfoAlt {
     creature_image: Handle<Image>,
     #[asset(key = "atlas.creatures")]
     creature_layout: Handle<TextureAtlasLayout>,
+    #[asset(key = "settings.movement")]
+    movement: Handle<grid::MovementSettings>,
     #[asset(key = "map.main")]
     tile_map: Handle<helpers::tiled::TiledMap>,
 }
@@ -101,17 +103,18 @@ struct Configuration {
 
 impl Default for Configuration {
     fn default() -> Self {
+        let movement = grid::MovementSettings::default();
         Self {
             name: String::new(),
             option: 0.,
             mouse_position: WorldPosition::default(),
             cursor_in_map_pos: Vec2::ZERO,
             debug_camera: false,
-            // Short enough to stay responsive when a direction is tapped repeatedly.
-            move_duration: 0.12,
-            // Matches CSS `ease-in-out`; see `grid::motion_curve`.
-            move_ease_in: 0.42,
-            move_ease_out: 0.42,
+            // Overwritten from `assets/main.movement.ron` when the level starts; these
+            // stand in only if that asset is missing.
+            move_duration: movement.duration,
+            move_ease_in: movement.ease_in,
+            move_ease_out: movement.ease_out,
         }
     }
 }
@@ -214,6 +217,11 @@ fn inspector_ui(world: &mut World) {
     egui::Window::new("Resource Inspector").show(egui_context.get_mut(), |ui| {
         egui::ScrollArea::both().show(ui, |ui| {
             bevy_inspector_egui::bevy_inspector::ui_for_resource::<Configuration>(world, ui);
+
+            ui.separator();
+            if ui.button("Save movement settings").clicked() {
+                world.write_message(grid::SaveMovementSettings);
+            }
         });
     });
 }
